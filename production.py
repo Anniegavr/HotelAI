@@ -54,21 +54,130 @@ def forward_chain(rules, data, apply_only_one=False, verbose=False):
 
     return data
 
+def backward_chaining(rules, goals, verbose):
+    goals_to_check = []
+    checked_hypotheses = []
+    for goal in goals:
+        goal4comp = normalize(goal)
+        for rule in rules:
+            if goal4comp == rule._action[0]:   #then (?x) is a mammal
+                if(rule._action not in checked_hypotheses):
+                    checked_hypotheses.append(rule._action)
+                    goals_to_check.append(list(rule._conditional))
+            elif goal4comp in rule._conditional:
+                for condition in rule._conditional:
+                    if condition not in goals_to_check:
+                        goals_to_check.append(condition)
+            else:
+                continue
+    result = check_if_true(list(set(goals_to_check)))  # returns error
+    if(list(set(goals_to_check)) == result):
+        return 'Goal proven'
+    else:
+        backward_chaining(rules, list(set(goals_to_check)), verbose)
 
-def backward_chain(rules, hypothesis, verbose=False):
-    previous_rule = ()
+def normalize(hypothesis):
+    stringArray = str(hypothesis).split()[1:]
+    hypothesis_for_comparison = '(?x) '+' '.join(stringArray)
+    return hypothesis_for_comparison
 
+def check_if_true(hypotheses):
+    for hypothesis in hypotheses:
+        it_is_true_about_the_subject = input(hypothesis+"?")
+        if it_is_true_about_the_subject == 'yes':
+            continue
+        elif it_is_true_about_the_subject == 'no':
+            hypotheses.remove(hypothesis)
+    return hypotheses
+# def backward_chaining(rules, goals, verbose):
+    # goal = "tim is a carnivore"
+    
+    for goal in goals:
+        goals_to_check = (goal,)
+        stringArray = str(goals[0]).split()[1:]
+        goal_for_comparison = ' '.join(stringArray)
+        for rule in rules:
+            # if goal_for_comparison in rule: #"tour is a Loonie" ######################################################################
+            #     continue
+            # rule._condition = rule.consequent()
+            rule_string_array = str(rule._action[0]).split()[1:]
+            then_for_comparison = ' '.join(rule_string_array)
+
+            #TO DO ensure that the goal is in the rules
+            goal = rule.apply(goal, True, verbose)
+            it_is_true_about_the_subject = input(goal_for_comparison+"?")
+            
+            # if (isinstance(rule._action, THEN) and goal_for_comparison == then_for_comparison):
+            if (isinstance(rule, THEN) and it_is_true_about_the_subject=="yes"): # and goal_for_comparison == then_for_comparison
+                new_goals = rule._conditional[:]
+                if verbose:
+                    print('Verbose mode is on: ', rule)
+                    new_bindings = unify(new_goals, rules, {})
+                    if new_bindings != False:
+                        if verbose:
+                            print('Success:', goal, ' += ', new_goals)
+                            rules.remove(rule)
+                            goals.remove(goals)
+                            backward_chaining(rules, new_goals, verbose)
+                        return True
+            else:
+                goals.remove(goal)
+                backward_chaining(rules, goals, verbose)
+
+    return False
+
+def unify(goals, rules, bindings):
+    if bindings == False:
+        return False
+    elif goals == []:
+        return bindings
+    else:
+        goal, goals = goals[0], goals[1:]
+    result = False
     for rule in rules:
-        while previous_rule != rule:
-            previous_rule = rule
-            for condition in rules:
-                print("condition",condition)
-                print("data:", data)
-                data = condition.apply(data, apply_only_one, verbose)
-                if set(data) != set(old_data):
-                    break
+        if isinstance(rule, IF) and rule.antecedent() in goals:
+            result = unify(goals, rules, bindings)
+            if result != False:
+                return result
+            goal = substitute(goal, bindings)
+            if is_variable(goal):
+                return unify_var(goal, goals, rules, bindings)
+            elif is_fact(goal):
+                return unify_fact(goal, goals, rules, bindings)
+            else:
+                return False
+def unify_var(var, goals, rules, bindings):
+    if var in bindings:
+        return unify(goals, rules, bindings)
+    else:
+        for rule in rules:
+            if is_fact(rule):
+                result = unify(goals, rules, bindings)
+                if result != False:
+                    return result
+        return False
 
-    return data
+def unify_fact(fact, goals, rules, bindings):
+    for goal in goals:
+        if is_fact(goal):
+            result = unify(goals, rules, bindings)
+            if result != False:
+                return result
+    return False
+
+def is_fact(fact):
+    return isinstance(fact, str) and fact[0] == fact[-1] == '"'
+
+def substitute(expression, bindings):
+    if is_variable(expression):
+        return bindings.get(expression, expression)
+    elif is_fact(expression):
+        return expression
+    else:
+        return [substitute(sub_expression, bindings) for sub_expression in expression]
+
+def is_variable(expression):
+    return isinstance(expression, str) and expression[0] == '?'
 
 
 def instantiate(template, values_dict):
@@ -117,13 +226,14 @@ def match(template, AIStr):
                            # just returned None
         return None
 
-def is_variable(str):
-    """Is 'str' a variable, of the form '(?x)'?"""
-    # return isinstance(str, basestring) and str[0] == '(' and \
-    #   str[-1] == ')' and re.search( AIStringToRegex(str) )
-    return isinstance(str) and str[0] == '(' and \
-      str[-1] == ')' and re.search( AIStringToRegex(str) )
-
+# def is_variable(str):
+#     """Is 'str' a variable, of the form '(?x)'?"""
+#     # return isinstance(str, basestring) and str[0] == '(' and \
+#     #   str[-1] == ')' and re.search( AIStringToRegex(str) )
+#     return isinstance(str) and str[0] == '(' and \
+#       str[-1] == ')' and re.search( AIStringToRegex(str) )
+def is_variable(expression):
+    return isinstance(expression, str) and expression[0] == '?'
 def variables(exp):
     """
     Return a dictionary containing the names of all variables in
@@ -462,5 +572,7 @@ def _simplify_or(branches):
 
 PASS = AND()
 FAIL = OR()
-run_conditions = forward_chain
+
+
+run_conditions = backward_chaining
 
