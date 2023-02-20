@@ -29,7 +29,7 @@ except NameError:
 ### >>> import production
 ### >>> help(production)
 
-def forward_chain(rules, data, apply_only_one=False, verbose=False):
+def forward_chain(rules, data, apply_only_one=False, verbose=True):
     """
     Apply a list of IF-expressions (rules) through a set of data
     in order.  Return the modified data set that results from the
@@ -46,12 +46,13 @@ def forward_chain(rules, data, apply_only_one=False, verbose=False):
     while set(old_data) != set(data):
         old_data = list(data)
         for condition in rules:
-            print("condition",condition)
-            print("data:", data)
+            # print("condition",condition)
+            # print("data:", data)
             data = condition.apply(data, apply_only_one, verbose)
             if set(data) != set(old_data):
                 break
 
+    print(data)
     return data
 
 def backward_chaining(rules, goals):
@@ -87,42 +88,6 @@ def backward_chaining(rules, goals):
                 print("Also,")
                 for info in either_goals:
                     print("perhaps "+str(goal).split()[0]+" "+str(info).replace('(?x)', '')+" \n or maybe \n")
-    # print("Goals to check: "+str(goals_to_check))
-    # print("Either goals: "+str(either_goals))
-    # print("And goals: "+str(and_goals))
-
-    # results = check_if_true(list(set(goals_to_check)))
-    # print("Confirmed hypotheses: "+str(results))  # returns error
-    # goals_in_semifinale = []
-    # maybe_facts = []
-    # check_now = []
-    # for result in results:
-    #     if isinstance(result, THEN):
-    #         goals_in_semifinale.append(result)
-    #     elif isinstance(result, AND) or isinstance(result, OR):
-    #         maybe_facts.append(result)
-    # print("Goals in semifinale: "+str(goals_in_semifinale))
-    # print("Maybe facts: "+str(maybe_facts))
-
-    # for rule in rules:
-    #     print("Checking rule: "+ str(rule))
-    #     if rule._action[0] in result:
-    #         goals_in_semifinale.append(goal)
-    #         still_valid = True
-    #         for condition in rule._conditional:
-    #             if condition in result:
-    #                 continue
-    #             elif isinstance(rule._conditional, AND):
-    #                 print("Condition "+condition+" not in results")
-    #                 continue
-    #                 # result.remove(rule._action)
-    #     else:
-    #         for condition in rule._conditional:
-    #             if condition in result:
-    #                 maybe_facts.append(condition)
-    #         print("Maybe facts: "+str(maybe_facts))
-
-    # return goals_in_semifinale
 
 def normalize(hypothesis):
     stringArray = str(hypothesis).split()[1:]
@@ -259,7 +224,7 @@ class IF(object):
         self._action = action
         self._delete_clause = delete_clause
 
-    def apply(self, rules, apply_only_one=False, verbose=False):
+    def apply(self, rules, apply_only_one, verbose):
         """
         Return a new set of data updated by the conditions and
         actions of this IF statement.

@@ -1,10 +1,13 @@
-# TODO: add your imports here:
-# from rules import my_rules
-from rules import TOURIST_RULES
+import re
+from rules import TOURIST_RULES, BACKWARD_CHAIN_TOURIST_DATA, FORWARD_CHAIN_TOURIST_DATA
 from production import forward_chain, backward_chaining
 
 if __name__=='__main__':
-
-    # hypothesis = 'You are a Culture Enthusiast Tourist'
-    goals = ["tim is a bird"]
-    backward_chaining(TOURIST_RULES, goals);
+    print('Backward chaining:')
+    backward_chaining(TOURIST_RULES, BACKWARD_CHAIN_TOURIST_DATA)
+    print('\n###############################################\nForward chaining: ')
+    conclusions = forward_chain(TOURIST_RULES, FORWARD_CHAIN_TOURIST_DATA)
+    print('Conclusion:')
+    for conclusion in conclusions:
+        if re.search("Tourist", conclusion):
+            print(conclusion)
