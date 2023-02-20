@@ -6,5 +6,5 @@ from production import forward_chain, backward_chaining
 if __name__=='__main__':
 
     # hypothesis = 'You are a Culture Enthusiast Tourist'
-    goals = ["tim is a mammal",]
-    print(backward_chaining(TOURIST_RULES, goals, True));
+    goals = ["tim is a bird"]
+    backward_chaining(TOURIST_RULES, goals);

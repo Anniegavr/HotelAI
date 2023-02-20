@@ -54,27 +54,75 @@ def forward_chain(rules, data, apply_only_one=False, verbose=False):
 
     return data
 
-def backward_chaining(rules, goals, verbose):
+def backward_chaining(rules, goals):
     goals_to_check = []
     checked_hypotheses = []
+    either_goals = []
+    and_goals = []
     for goal in goals:
         goal4comp = normalize(goal)
         for rule in rules:
             if goal4comp == rule._action[0]:   #then (?x) is a mammal
                 if(rule._action not in checked_hypotheses):
-                    checked_hypotheses.append(rule._action)
-                    goals_to_check.append(list(rule._conditional))
+                    # checked_hypotheses.append(rule._action)
+                    for condition in rule._conditional:
+                        if condition not in goals_to_check:
+                            if isinstance(rule._conditional, AND):
+                                and_goals.append(condition)
+                            elif isinstance(rule._conditional, OR):
+                                either_goals.append(condition)
+                            goals_to_check.append(condition)
             elif goal4comp in rule._conditional:
                 for condition in rule._conditional:
                     if condition not in goals_to_check:
                         goals_to_check.append(condition)
             else:
                 continue
-    result = check_if_true(list(set(goals_to_check)))  # returns error
-    if(list(set(goals_to_check)) == result):
-        return 'Goal proven'
-    else:
-        backward_chaining(rules, list(set(goals_to_check)), verbose)
+        if len(and_goals)>0 or len(either_goals)>0:
+            print("Let me tell you about "+str(goal).split()[0]+":")
+            if len(and_goals)>0:    
+                for info in and_goals:
+                    print(str(goal).split()[0]+" "+str(info).replace('(?x)', ''))
+            if len(either_goals)>0:
+                print("Also,")
+                for info in either_goals:
+                    print("perhaps "+str(goal).split()[0]+" "+str(info).replace('(?x)', '')+" \n or maybe \n")
+    # print("Goals to check: "+str(goals_to_check))
+    # print("Either goals: "+str(either_goals))
+    # print("And goals: "+str(and_goals))
+
+    # results = check_if_true(list(set(goals_to_check)))
+    # print("Confirmed hypotheses: "+str(results))  # returns error
+    # goals_in_semifinale = []
+    # maybe_facts = []
+    # check_now = []
+    # for result in results:
+    #     if isinstance(result, THEN):
+    #         goals_in_semifinale.append(result)
+    #     elif isinstance(result, AND) or isinstance(result, OR):
+    #         maybe_facts.append(result)
+    # print("Goals in semifinale: "+str(goals_in_semifinale))
+    # print("Maybe facts: "+str(maybe_facts))
+
+    # for rule in rules:
+    #     print("Checking rule: "+ str(rule))
+    #     if rule._action[0] in result:
+    #         goals_in_semifinale.append(goal)
+    #         still_valid = True
+    #         for condition in rule._conditional:
+    #             if condition in result:
+    #                 continue
+    #             elif isinstance(rule._conditional, AND):
+    #                 print("Condition "+condition+" not in results")
+    #                 continue
+    #                 # result.remove(rule._action)
+    #     else:
+    #         for condition in rule._conditional:
+    #             if condition in result:
+    #                 maybe_facts.append(condition)
+    #         print("Maybe facts: "+str(maybe_facts))
+
+    # return goals_in_semifinale
 
 def normalize(hypothesis):
     stringArray = str(hypothesis).split()[1:]
@@ -82,82 +130,14 @@ def normalize(hypothesis):
     return hypothesis_for_comparison
 
 def check_if_true(hypotheses):
+    confirmed_hypotheses = []
+    # denied_hypotheses = []
     for hypothesis in hypotheses:
         it_is_true_about_the_subject = input(hypothesis+"?")
         if it_is_true_about_the_subject == 'yes':
-            continue
-        elif it_is_true_about_the_subject == 'no':
-            hypotheses.remove(hypothesis)
-    return hypotheses
-# def backward_chaining(rules, goals, verbose):
-    # goal = "tim is a carnivore"
-    
-    for goal in goals:
-        goals_to_check = (goal,)
-        stringArray = str(goals[0]).split()[1:]
-        goal_for_comparison = ' '.join(stringArray)
-        for rule in rules:
-            # if goal_for_comparison in rule: #"tour is a Loonie" ######################################################################
-            #     continue
-            # rule._condition = rule.consequent()
-            rule_string_array = str(rule._action[0]).split()[1:]
-            then_for_comparison = ' '.join(rule_string_array)
+            confirmed_hypotheses.append(hypothesis)
+    return confirmed_hypotheses
 
-            #TO DO ensure that the goal is in the rules
-            goal = rule.apply(goal, True, verbose)
-            it_is_true_about_the_subject = input(goal_for_comparison+"?")
-            
-            # if (isinstance(rule._action, THEN) and goal_for_comparison == then_for_comparison):
-            if (isinstance(rule, THEN) and it_is_true_about_the_subject=="yes"): # and goal_for_comparison == then_for_comparison
-                new_goals = rule._conditional[:]
-                if verbose:
-                    print('Verbose mode is on: ', rule)
-                    new_bindings = unify(new_goals, rules, {})
-                    if new_bindings != False:
-                        if verbose:
-                            print('Success:', goal, ' += ', new_goals)
-                            rules.remove(rule)
-                            goals.remove(goals)
-                            backward_chaining(rules, new_goals, verbose)
-                        return True
-            else:
-                goals.remove(goal)
-                backward_chaining(rules, goals, verbose)
-
-    return False
-
-def unify(goals, rules, bindings):
-    if bindings == False:
-        return False
-    elif goals == []:
-        return bindings
-    else:
-        goal, goals = goals[0], goals[1:]
-    result = False
-    for rule in rules:
-        if isinstance(rule, IF) and rule.antecedent() in goals:
-            result = unify(goals, rules, bindings)
-            if result != False:
-                return result
-            goal = substitute(goal, bindings)
-            if is_variable(goal):
-                return unify_var(goal, goals, rules, bindings)
-            elif is_fact(goal):
-                return unify_fact(goal, goals, rules, bindings)
-            else:
-                return False
-def unify_var(var, goals, rules, bindings):
-    if var in bindings:
-        return unify(goals, rules, bindings)
-    else:
-        for rule in rules:
-            if is_fact(rule):
-                result = unify(goals, rules, bindings)
-                if result != False:
-                    return result
-        return False
-
-def unify_fact(fact, goals, rules, bindings):
     for goal in goals:
         if is_fact(goal):
             result = unify(goals, rules, bindings)
