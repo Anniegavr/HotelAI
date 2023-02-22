@@ -52,63 +52,63 @@ def forward_chain(rules, data, apply_only_one=False, verbose=True):
             if set(data) != set(old_data):
                 break
 
-    print(data)
+    # print(data)
     return data
 
-def backward_chaining(rules, goals):
-    goals_to_check = []
+def backward_chaining(rules, goals, visitor_name):
+    goals_to_check = goals
     checked_hypotheses = []
     either_goals = []
     and_goals = []
-    for goal in goals:
-        goal4comp = normalize(goal)
-        for rule in rules:
-            if goal4comp == rule._action[0]:   #then (?x) is a mammal
-                if(rule._action not in checked_hypotheses):
-                    # checked_hypotheses.append(rule._action)
-                    for condition in rule._conditional:
-                        if condition not in goals_to_check:
-                            if isinstance(rule._conditional, AND):
-                                and_goals.append(condition)
-                            elif isinstance(rule._conditional, OR):
-                                either_goals.append(condition)
-                            goals_to_check.append(condition)
-            elif goal4comp in rule._conditional:
-                for condition in rule._conditional:
-                    if condition not in goals_to_check:
-                        goals_to_check.append(condition)
-            else:
-                continue
-        if len(and_goals)>0 or len(either_goals)>0:
-            print("Let me tell you about "+str(goal).split()[0]+":")
-            if len(and_goals)>0:    
-                for info in and_goals:
-                    print(str(goal).split()[0]+" "+str(info).replace('(?x)', ''))
-            if len(either_goals)>0:
-                print("Also,")
-                for info in either_goals:
-                    print("perhaps "+str(goal).split()[0]+" "+str(info).replace('(?x)', '')+" \n or maybe \n")
+    repeat=True
+    while(repeat):
+        added=False
+        for goal in goals_to_check:
+            # goal4comp = normalize(goal)
+            goal4comp = goal
+            for rule in rules:
+                if goal4comp == rule._action[0]:
+                    print("found goal in then: "+goal4comp)
+                    if(rule._action not in checked_hypotheses):
+                        checked_hypotheses.append(rule._action)
+                        for condition in rule._conditional:
+                            if condition not in goals_to_check:
+                                if isinstance(rule._conditional, AND):
+                                    and_goals.append(condition)
+                                    added=True
+                                elif isinstance(rule._conditional, OR):
+                                    either_goals.append(condition)
+                                    added=True
+                                goals_to_check.append(condition)
+                else:
+                    continue
+            if not added:
+                repeat=False
+            if added==True:
+                # break
+                repeat = False
+    if len(and_goals)>0 or len(either_goals)>0:
+        print("Let me tell you about "+visitor_name+":")
+        for info in checked_hypotheses:
+            print(visitor_name+" "+str(info).replace('THEN(\'(?x)', '').replace('\')', ''))
+        if len(and_goals)>0:    
+            for info in and_goals:
+                print(visitor_name+" "+str(info).replace('(?x)', ''))
+        if len(either_goals)>0:
+            # print("Also,")
+            for info in either_goals:
+                if info in goals:
+                    print(visitor_name+str(info).replace('(?x)', ''))
+                    continue
+                else:            
+                    print('or')        
+                    print("perhaps "+visitor_name+" "+str(info).replace('(?x)', ''))
+
 
 def normalize(hypothesis):
     stringArray = str(hypothesis).split()[1:]
     hypothesis_for_comparison = '(?x) '+' '.join(stringArray)
     return hypothesis_for_comparison
-
-def check_if_true(hypotheses):
-    confirmed_hypotheses = []
-    # denied_hypotheses = []
-    for hypothesis in hypotheses:
-        it_is_true_about_the_subject = input(hypothesis+"?")
-        if it_is_true_about_the_subject == 'yes':
-            confirmed_hypotheses.append(hypothesis)
-    return confirmed_hypotheses
-
-    for goal in goals:
-        if is_fact(goal):
-            result = unify(goals, rules, bindings)
-            if result != False:
-                return result
-    return False
 
 def is_fact(fact):
     return isinstance(fact, str) and fact[0] == fact[-1] == '"'
