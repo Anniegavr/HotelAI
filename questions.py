@@ -2,6 +2,20 @@ from rules import TOURIST_RULES, BACKWARD_CHAIN_TOURIST_DATA, TOURIST_DATA
 def get_name():
     return input('What is your name? ')
 
+def select_tourist():
+    print('Here is a list of tourist, which one would you like to know about? Insert the number of the option.')
+    selected = input("1.Collectionist Tourist\n2. Potography Fan Toursist\n3. Rich Tourist\n4. Shopping Fan Tourist\n5.Discover Culture Tourist\n")
+    if selected=='1':
+        return '(?x) is a Collectionist Tourist'
+    elif selected=='2':
+        return '(?x) is Photography Fan Tourist'
+    elif selected=='3':
+        return '(?x) is a Rich Tourist'
+    elif selected=='4':
+        return '(?x) is a Shopping Tourist'
+    elif selected=='5':
+        return '(?x) is a Discover Culture Tourist'
+
 def gather_tourist_data():
     tourist_answers = ask_questions()
     for rule in tourist_answers.keys():

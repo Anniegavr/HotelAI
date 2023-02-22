@@ -51,11 +51,10 @@ def forward_chain(rules, data, apply_only_one=False, verbose=True):
             data = condition.apply(data, apply_only_one, verbose)
             if set(data) != set(old_data):
                 break
-
     # print(data)
     return data
 
-def backward_chaining(rules, goals, visitor_name):
+def both_chaining(rules, goals, visitor_name):
     goals_to_check = goals
     checked_hypotheses = []
     either_goals = []
@@ -68,7 +67,6 @@ def backward_chaining(rules, goals, visitor_name):
             goal4comp = goal
             for rule in rules:
                 if goal4comp == rule._action[0]:
-                    print("found goal in then: "+goal4comp)
                     if(rule._action not in checked_hypotheses):
                         checked_hypotheses.append(rule._action)
                         for condition in rule._conditional:
@@ -519,5 +517,5 @@ PASS = AND()
 FAIL = OR()
 
 
-run_conditions = backward_chaining
+run_conditions = both_chaining
 

@@ -31,10 +31,6 @@ TOURIST_RULES = (
 )
 
 
-BACKWARD_CHAIN_TOURIST_DATA = [
-    # 'touri is a Shopping Tourist', #photo tourist
-]
-
 FORWARD_CHAIN_TOURIST_DATA = (
     'mark needs a map of the city or one of its parts',
     'mark needs a specific places info', ###explore
