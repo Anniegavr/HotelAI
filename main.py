@@ -14,7 +14,6 @@ if __name__=='__main__':
         both_chaining(TOURIST_RULES, DATA, visitor_name)
     elif choice == 'F':
         questions.gather_tourist_data()
-    # ourist_data()
         both_chaining(TOURIST_RULES, TOURIST_DATA, visitor_name)
 
 

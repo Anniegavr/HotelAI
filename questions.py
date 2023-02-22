@@ -1,4 +1,4 @@
-from rules import TOURIST_RULES, BACKWARD_CHAIN_TOURIST_DATA, TOURIST_DATA
+from rules import TOURIST_DATA
 def get_name():
     return input('What is your name? ')
 
